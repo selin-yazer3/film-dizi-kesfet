@@ -380,10 +380,10 @@ def semantic_search(media_type, ai_result, selected_genres, min_rating, year_ran
             SELECT m.id, m.title, m.vote_average,
                    m.release_date::text as date, m.overview, m.poster_path,
                    m.popularity, m.cast_names, m.director, 'FİLM' as type,
-                   1 - (m.embedding <=> CAST('{embedding_str}' AS vector)) as similarity
-            FROM movies m{genre_join}
+                   1 - (m.embedding::vector <=> CAST('{embedding_str}' AS vector)) as similarity
+           FROM movies m{genre_join}
             WHERE {' AND '.join(wheres)}
-            ORDER BY similarity DESC
+            ORDER BY (m.embedding::vector <=> CAST('{embedding_str}' AS vector)) ASC
             LIMIT 100
         """
         
@@ -407,10 +407,10 @@ def semantic_search(media_type, ai_result, selected_genres, min_rating, year_ran
             SELECT s.id, s.name as title, s.vote_average,
                    s.first_air_date::text as date, s.overview, s.poster_path,
                    s.popularity, s.cast_names, s.director, 'DİZİ' as type,
-                   1 - (s.embedding <=> CAST('{embedding_str}' AS vector)) as similarity
+                   1 - (s.embedding::vector <=> CAST('{embedding_str}' AS vector)) as similarity
             FROM series s{genre_join}
             WHERE {' AND '.join(wheres)}
-            ORDER BY similarity DESC
+            ORDER BY (s.embedding::vector <=> CAST('{embedding_str}' AS vector)) ASC
             LIMIT 100
         """
         
@@ -811,7 +811,7 @@ def main():
             if ai_result.get("mood"):
                 info_parts.append(f"🎨 Atmosfer: **{ai_result['mood']}**")
             if desc:
-                info_parts.append(f"� *{desc}*")
+                info_parts.append(f"📝 *{desc}*")
             
             st.info(" | ".join(info_parts) if info_parts else f"🔍 {search_query}")
     
@@ -914,3 +914,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
